@@ -1,19 +1,26 @@
 var socket = io();
 //socket.emit("GPIO26", a);
-var x = 1000;
+var xPrev = 1000;
+var yPrev = 1000;
+
 setInterval(function(){
-  let n = joy.GetX(); 
-  if(n != x) {
-    x = n;
-    let nExpand = n * 2.5;
-    nExpand = Math.abs(nExpand)
-    nExpand = parseInt(nExpand)
-    if(nExpand > 255 || nExpand < 0) {
-	nExpand = 255;
-    }
-    socket.emit("GPIO26", nExpand)
-    console.log(nExpand)
+  let x = joy.GetX();
+  let y = joy.GetY();
+  x = x * 2.5;
+  y = y * 2.5;
+  x = parseInt(x);
+  y = parseInt(y);
+  
+  let lY = y;
+  let rY = y;
+  
+  if(x > 0) {
+    rY -= x;
+  } else {
+    lY -= x;
   }
+ 
+  console.log(x + "x " + y + "y")
 }, 50);
 
 document.addEventListener("keydown", reportKeyDown);
