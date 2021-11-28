@@ -1,0 +1,54 @@
+'<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>A1 Rover Controller</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <script src="joy.js"></script>
+   </head>
+
+<body>
+  <div id="camera">
+    <div id="joyDiv" style="height:200px;width:200px;margin-bottom:20px;opacity:0.5;"></div>
+  </div>
+  <script style="text/javascript">
+    let hPosMod = 0;
+    let wPosMod = 0;
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+	hPosMod = 0.2;
+	wPosMod = 0.65;
+    } else {
+	hPosMod = 0.5;
+	wPosMod = 0.75;
+   }
+
+    let vh = window.innerHeight * 0.5;
+    let joys = document.querySelector("#joyDiv");
+    let dim = vh + "px";
+    let c = "height:" + dim + ";width:" + dim + ";height:" + dim + "margin-bottom:20px;opacity:0.5;";
+
+    let w = window.innerWidth * wPosMod;
+    let h = window.innerHeight * hPosMod;
+    let hPos = h + "px;"
+    let wPos = w + "px;"
+    let p = "position:relative;top:" + hPos + "left:" + wPos;
+    console.log(c + p)
+    joys.style.cssText = c + p;
+    
+  </script>
+  <script type="text/javascript">
+    screenHeight = screen.height / 3;
+    var param = {
+      "height": screenHeight,
+      "width": screenHeight,
+      "internalFillColor": "#000000",
+      "internalStrokeColor": "#000000",
+      "externalStrokeColor": "#000000",
+    }
+    var joy = new JoyStick('joyDiv', param);
+    </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
