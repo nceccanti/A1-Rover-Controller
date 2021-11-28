@@ -4,6 +4,9 @@ var url = require('url');
 var path = require('path');
 var io = require('socket.io','net')(http) //require socket.io module and pass the http object (server)
 var Gpio = require('pigpio').Gpio; //include onoff to interact with the GPIO
+const led4 = new Gpio(4, {mode: Gpio.OUTPUT});
+const led14 = new Gpio(14, {mode: Gpio.OUTPUT});
+const led16 = new Gpio(16, {mode: Gpio.OUTPUT});
 const led26 = new Gpio(26, {mode: Gpio.OUTPUT});
 var ip = require("ip");
 const nodemailer = require("nodemailer")
@@ -51,6 +54,9 @@ async function sendMail() {
 
 //sendMail().then(result => console.log("Email sent", result)).catch(error => console.log(error.message))
 
+var GPIO4value = 0;
+var GPIO14value = 0;
+var GPIO16value = 0;
 var GPIO26value = 0;
 /****** CONSTANTS******************************************************/
 
@@ -70,9 +76,12 @@ const WebPort = 80;
 
 // Start http webserver
 http.listen(WebPort, function() {  // This gets call when the web server is first started.
+  led4.pwmWrite(GPIO4value);
+  led14.pwmWrite(GPIO14value);
+  led16.pwmWrite(GPIO16value);
 	led26.pwmWrite(GPIO26value); //turn LED on or off
 	console.log('Server running on Port '+WebPort);
-	console.log('GPIO26 = '+GPIO26value);
+	console.log(GPIO4value + " " + GPIO14value + " " + GPIO16value + " " + GPIO26value);
 	} 
 ); 
 
@@ -136,17 +145,42 @@ function handler (req, res) {
 
 // Execute this when web server is terminated
 process.on('SIGINT', function () { //on ctrl+c
+  led4.pwmWrite(0);
+  led14.pwmWrite(0);
+  led16.pwmWrite(0);
   led26.pwmWrite(0); // Turn LED off
   process.exit(); //exit completely
 }); 
 
 
 io.sockets.on('connection', function (socket) {// WebSocket Connection
+    socket.emit('GPIO4', GPIO4value);
+    socket.emit('GPIO14', GPIO14value);
+    socket.emit('GPIO16', GPIO16value);
     socket.emit('GPIO26', GPIO26value);
+
+    socket.on('GPIO4', function(data) { 
+	    GPIO4value = data;
+	    led4.pwmWrite(GPIO4value)
+	    console.log(GPIO4value)
+    });
+
+    socket.on('GPIO14', function(data) { 
+	    GPIO14value = data;
+	    led14.pwmWrite(GPIO14value)
+	    console.log(GPIO14value)
+    });
+
+    socket.on('GPIO16', function(data) { 
+	    GPIO16value = data;
+	    led16.pwmWrite(GPIO16value)
+	    console.log(GPIO16value)
+    });
+
     socket.on('GPIO26', function(data) { 
-	GPIO26value = data;
-	led26.pwmWrite(GPIO26value)
-	console.log(GPIO26value)
+	    GPIO26value = data;
+	    led26.pwmWrite(GPIO26value)
+	    console.log(GPIO26value)
     });
     
     //Whenever someone disconnects this piece of code executed

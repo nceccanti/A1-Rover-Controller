@@ -1,26 +1,70 @@
-var socket = io();
+//var socket = io();
 //socket.emit("GPIO26", a);
-var xPrev = 1000;
-var yPrev = 1000;
+var lYPrev = 1000;
+var rYPrev = 1000;
 
 setInterval(function(){
   let x = joy.GetX();
   let y = joy.GetY();
   x = x * 2.5;
   y = y * 2.5;
-  x = parseInt(x);
-  y = parseInt(y);
   
   let lY = y;
   let rY = y;
-  
+
   if(x > 0) {
-    rY -= x;
+    lY += x;
+    rY -= x; 
   } else {
-    lY -= x;
+    lY += x;
+    rY -= x;
+  }
+
+  if(lY > 255) {
+    lY = 255;
+  }
+
+  if(rY > 255) {
+    rY = 255;
+  }
+
+  if(lY < -255) {
+    lY = -255;
+  }
+
+  if(rY < -255) {
+    rY = -255;
   }
  
-  console.log(x + "x " + y + "y")
+  lY = parseInt(lY);
+  rY = parseInt(rY);
+  
+  let LF = 0;
+  let LB = 0;
+  let RF = 0;
+  let RB = 0;
+
+  if(lY > 0) {
+    LF = lY;
+  }
+  if(lY < 0) {
+    LB = Math.abs(lY);
+  }
+  if(rY > 0) {
+    RF = rY;
+  }
+  if(rY < 0) {
+    RB = Math.abs(rY);
+  }
+
+  if(lY != lYPrev || rY != rYPrev) {
+    lYPrev = lY;
+    rYPrev = rY;
+    socket.emit("GPIO4", LF);
+    socket.emit("GPIO14", LB);
+    socket.emit("GPIO16", RF);
+    socket.emit("GPIO26", RB);
+  }
 }, 50);
 
 document.addEventListener("keydown", reportKeyDown);
@@ -28,7 +72,7 @@ document.addEventListener("keyup", reportKeyUp);
 
 document.addEventListener("DOMContentLoaded", (e) => {
 	let ip = location.host;
-	console.log(ip)
+	console.logw(ip)
 	let back = document.querySelector("body");
 	let host = "background-image:url(http://" + ip + ":8080/?action=stream);"
 	back.style.cssText = host;	
