@@ -1,4 +1,4 @@
-//var socket = io();
+var socket = io();
 //socket.emit("GPIO26", a);
 var lYPrev = 1000;
 var rYPrev = 1000;
@@ -67,12 +67,14 @@ setInterval(function(){
   }
 }, 50);
 
+
+
 document.addEventListener("keydown", reportKeyDown);
 document.addEventListener("keyup", reportKeyUp);
 
 document.addEventListener("DOMContentLoaded", (e) => {
 	let ip = location.host;
-	console.logw(ip)
+	console.log(ip)
 	let back = document.querySelector("body");
 	let host = "background-image:url(http://" + ip + ":8080/?action=stream);"
 	back.style.cssText = host;	

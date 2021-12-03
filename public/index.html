@@ -1,4 +1,4 @@
-'<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,20 +6,33 @@
     <title>A1 Rover Controller</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <script src="joy.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+   <style>
+     #map {
+       height: 30vh;
+       width: 20vw;
+     }
+   </style>
    </head>
 
 <body>
   <div id="camera">
+    <div id="map"></div>
     <div id="joyDiv" style="height:200px;width:200px;margin-bottom:20px;opacity:0.5;"></div>
   </div>
   <script style="text/javascript">
     let hPosMod = 0;
     let wPosMod = 0;
     if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-	hPosMod = 0.2;
+	hPosMod = 0.0;
 	wPosMod = 0.65;
     } else {
-	hPosMod = 0.5;
+	hPosMod = 0.3;
 	wPosMod = 0.75;
    }
 
@@ -50,5 +63,30 @@
     </script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="main.js"></script>
+  <script>
+    var mymap = L.map('map').setView([0, 0], 13);
+    const marker = L.marker([0, 0]).addTo(mymap);
+    const attribution = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    const tiles = L.tileLayer(tileUrl, { attribution });
+    tiles.addTo(mymap);
+  </script>
+  <script>
+    setInterval(function() {
+      let ip = location.host;
+      ip = "http://" + ip + ":3000/gps"
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+	  console.log(this.response.latit + " " +  this.response.longit);
+          mymap.setView([this.response.latit, this.response.longit], 17)
+          marker.setLatLng([this.response.latit, this.response.longit])
+        }
+      };
+      xhttp.open("GET", ip, true);
+      xhttp.responseType = "json";
+      xhttp.send();
+    }, 10000)
+  </script>
 </body>
 </html>

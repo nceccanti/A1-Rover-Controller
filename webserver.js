@@ -11,84 +11,67 @@ const led26 = new Gpio(26, {mode: Gpio.OUTPUT});
 var ip = require("ip");
 const nodemailer = require("nodemailer")
 const {google} = require("googleapis")
+const express = require("express");
+const app = express();
+const cors = require("cors")
 
-const CLIENT_ID = "443127748749-8tvsl6s0hf16c2q9a8qovs663ruk0k9s.apps.googleusercontent.com"
-const CLIENT_SECRET = "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"
-const REDIRECT_URI = "https://developers.google.com/oauthplayground"
-const REFRESH_TOKEN = "1//049yfanlTagRlCgYIARAAGAQSNwF-L9IrHIlJIid_cvvZpu11TX2_3hHa_Ik-8OwHZUIPnGuT4BexxBo-KVNJBqa-q-nkkoFnW54"
+const SerialPort = require("serialport")
+const SerialPortParser = require("@serialport/parser-readline")
+const GPS = require("gps");
+const Request = require("request-promise");
 
-const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN })
+const port = new SerialPort("/dev/ttyS0", { baudRate: 9600});
+const gps = new GPS();
+const parser = port.pipe(new SerialPortParser());
 
-async function sendMail() {
-  try {
-    const accessToken = await oAuth2Client.getAccessToken()
-    const transport = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        type: "OAuth",
-        user: "nicceccanti@gmail.com",
-	pass: "M1ch1xx1234!@#$",
-        clientId: CLIENT_ID,
-	clientSecret: CLIENT_SECRET,
-	refreshToken: REFRESH_TOKEN,
-	accessToken: accessToken
-      }
-    })
+const allowedOrigins = [ip.address()];
+app.use(cors())
 
-    const mailOptions = {
-      from: "nicceccanti@gmail.com",
-      to: "nicceccanti@gmail.com",
-      subject: "A1 Rover Controller IP",
-      text: "" + ip.address(),
-      html: "<h1>" + ip.address() + "</h1>"
-    };
-    
-   const result = await transport.sendMail(mailOptions);
-   return result;
+var lat = 0;
+var long = 0;
 
-  } catch(error) {
-    return error;
+app.get("/gps", (req, res) => {
+  res.send({
+    latit: lat,
+    longit: long,
+  });
+});
+
+gps.on("data", data => {
+  if(data.type == "GGA") {
+    if(data.quality != null) {
+      lat = data.lat;
+      long = data.lon;
+     console.log(lat + " " + long)
+    }
   }
-}
+})
 
-//sendMail().then(result => console.log("Email sent", result)).catch(error => console.log(error.message))
+parser.on("data", data => {
+  gps.update(data)
+})
+
+app.listen(3000, () => {
+  console.log(`Example app listening at 3000`)
+})
 
 var GPIO4value = 0;
 var GPIO14value = 0;
 var GPIO16value = 0;
 var GPIO26value = 0;
-/****** CONSTANTS******************************************************/
 
 const WebPort = 80;
 
-
-/* if you want to run WebPort on a port lower than 1024 without running
- * node as root, you need to run following from a terminal on the pi
- * sudo apt update
- * sudo apt install libcap2-bin
- * sudo setcap cap_net_bind_service=+ep /usr/local/bin/node
- */
- 
-/*************** Web Browser Communication ****************************/
-
-
-
-// Start http webserver
-http.listen(WebPort, function() {  // This gets call when the web server is first started.
+http.listen(WebPort, function() {
   led4.pwmWrite(GPIO4value);
   led14.pwmWrite(GPIO14value);
   led16.pwmWrite(GPIO16value);
-	led26.pwmWrite(GPIO26value); //turn LED on or off
+	led26.pwmWrite(GPIO26value); 
 	console.log('Server running on Port '+WebPort);
 	console.log(GPIO4value + " " + GPIO14value + " " + GPIO16value + " " + GPIO26value);
 	} 
 ); 
 
-
-
-// function handler is called whenever a client makes an http request to the server
-// such as requesting a web page.
 function handler (req, res) { 
     var q = url.parse(req.url, true);
     var filename = "." + q.pathname;
@@ -99,10 +82,8 @@ function handler (req, res) {
       filename= './index.html';
     }
     
-    // Initial content type
     var contentType = 'text/html';
     
-    // Check ext and set content type
     switch(extname) {
 	case '.js':
 	    contentType = 'text/javascript';
@@ -129,10 +110,6 @@ function handler (req, res) {
     fs.readFile(__dirname + '/public/' + filename, function(err, content) {
 	if(err) {
 	    console.log('File not found. Filename='+filename);
-	    fs.readFile(__dirname + '/public/404.html', function(err, content) {
-		res.writeHead(200, {'Content-Type': 'text/html'}); 
-		return res.end(content,'utf'); //display 404 on error
-	    });
 	}
 	else {
 	    // Success
@@ -143,17 +120,16 @@ function handler (req, res) {
     });
 }
 
-// Execute this when web server is terminated
-process.on('SIGINT', function () { //on ctrl+c
+process.on('SIGINT', function () {
   led4.pwmWrite(0);
   led14.pwmWrite(0);
   led16.pwmWrite(0);
-  led26.pwmWrite(0); // Turn LED off
-  process.exit(); //exit completely
+  led26.pwmWrite(0); 
+  process.exit(); 
 }); 
 
 
-io.sockets.on('connection', function (socket) {// WebSocket Connection
+io.sockets.on('connection', function (socket) {
     socket.emit('GPIO4', GPIO4value);
     socket.emit('GPIO14', GPIO14value);
     socket.emit('GPIO16', GPIO16value);
@@ -183,7 +159,6 @@ io.sockets.on('connection', function (socket) {// WebSocket Connection
 	    console.log(GPIO26value)
     });
     
-    //Whenever someone disconnects this piece of code executed
     socket.on('disconnect', function () {
 	console.log('A user disconnected');
     });
