@@ -1,5 +1,4 @@
 var socket = io();
-//socket.emit("GPIO26", a);
 var lYPrev = 1000;
 var rYPrev = 1000;
 
@@ -86,73 +85,52 @@ var map = {};
 var LEFT_SUM;
 var RIGHT_SUM;
 
+var fired = false
 function reportKeyDown(e) {
-  lSum = 0;
-  rSum = 0;
-  e = e || event;
-  map[e.keyCode] = e.type == "keydown";
-  //console.log(map)
-  if(map[87] && map[83]) {
-    lSum = 0;
-    rSum = 0;
-  } else if(map[87]) {
-    lSum = 255;
-    rSum = 255;
-  } else if(map[83]) {
-    lSum = -255;
-    rSum = -255;
-  }
-  if(map[65] && map[68]) {
-    console.log("nothing")
-  } else if(map[65]) {
-    if(lSum == 0 && rSum == 0) {
-      lSum = -255
-      rSum = 255
-    } else {
-      lSum *= 0.5;
-      lSum = parseInt(lSum)
+  if(!fired) {
+    var code = e.which || e.keyCode
+    if(e.key == "w" || code == 38) {
+      socket.emit("GPIO4", 255)
+      socket.emit("GPIO14", 0)
+      socket.emit("GPIO16", 255)
+      socket.emit("GPIO26", 0)
     }
-  } else if(map[68]) {
-    if(lSum == 0 && rSum == 0) {
-      lSum = 255
-      rSum = -255
-    } else {
-      rSum *= 0.5;
-      rSum = parseInt(rSum)
+    if(e.key == "s" || code == 40) {
+      socket.emit("GPIO4", 0)
+      socket.emit("GPIO14", 255)
+      socket.emit("GPIO16", 0)
+      socket.emit("GPIO26", 255)
+    }
+    if((e.key == "a" || code == 37)) {
+      socket.emit("GPIO4", 0)
+      socket.emit("GPIO14", -255)
+      socket.emit("GPIO16", 255)
+      socket.emit("GPIO26", 0)
+    }
+    if((e.key == "d" || code == 39)) {
+      socket.emit("GPIO4", 255)
+      socket.emit("GPIO14", 0)
+      socket.emit("GPIO16", 0)
+      socket.emit("GPIO26", -255)
     }
   }
-  
-  if(LEFT_SUM != lSum) {
-    LEFT_SUM = lSum
-    Math.abs(lSum)
-    if(lSum > 255) {
-      lSum = 255
-    }
-    socket.emit("GPIO26", LEFT_SUM)
-    //console.log(LEFT_SUM)
-  }
-  if(RIGHT_SUM != rSum) {
-    RIGHT_SUM = rSum
-    //console.log(RIGHT_SUM)
-  }
+  fired = true;
 }
 
 function reportKeyUp(e) {
+  fired = false;
   var code = e.which || e.keyCode
   if(e.key == "w" || code == 38) {
-    map = {}
     socket.emit("GPIO26", 0)
   }
   if(e.key == "s" || code == 40) {
-    map = {}
     socket.emit("GPIO26", 0)
   }
   if((e.key == "a" || code == 37)) {
-    map = {}
     socket.emit("GPIO26", 0)
   }
   if((e.key == "d" || code == 39)) {
-    map = {}
     socket.emit("GPIO26", 0)
   }
+
 }

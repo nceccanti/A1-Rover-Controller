@@ -112,7 +112,6 @@ function handler (req, res) {
 	    console.log('File not found. Filename='+filename);
 	}
 	else {
-	    // Success
 	    res.writeHead(200, {'Content-Type': contentType}); 
 	    return res.end(content,'utf8');
 	}
@@ -163,4 +162,3 @@ io.sockets.on('connection', function (socket) {
 	console.log('A user disconnected');
     });
 });
-
