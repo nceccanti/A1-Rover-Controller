@@ -66,11 +66,6 @@ setInterval(function(){
   }
 }, 50);
 
-
-
-document.addEventListener("keydown", reportKeyDown);
-document.addEventListener("keyup", reportKeyUp);
-
 document.addEventListener("DOMContentLoaded", (e) => {
 	let ip = location.host;
 	console.log(ip)
@@ -84,53 +79,3 @@ var map = {};
 
 var LEFT_SUM;
 var RIGHT_SUM;
-
-var fired = false
-function reportKeyDown(e) {
-  if(!fired) {
-    var code = e.which || e.keyCode
-    if(e.key == "w" || code == 38) {
-      socket.emit("GPIO4", 255)
-      socket.emit("GPIO14", 0)
-      socket.emit("GPIO16", 255)
-      socket.emit("GPIO26", 0)
-    }
-    if(e.key == "s" || code == 40) {
-      socket.emit("GPIO4", 0)
-      socket.emit("GPIO14", 255)
-      socket.emit("GPIO16", 0)
-      socket.emit("GPIO26", 255)
-    }
-    if((e.key == "a" || code == 37)) {
-      socket.emit("GPIO4", 0)
-      socket.emit("GPIO14", -255)
-      socket.emit("GPIO16", 255)
-      socket.emit("GPIO26", 0)
-    }
-    if((e.key == "d" || code == 39)) {
-      socket.emit("GPIO4", 255)
-      socket.emit("GPIO14", 0)
-      socket.emit("GPIO16", 0)
-      socket.emit("GPIO26", -255)
-    }
-  }
-  fired = true;
-}
-
-function reportKeyUp(e) {
-  fired = false;
-  var code = e.which || e.keyCode
-  if(e.key == "w" || code == 38) {
-    socket.emit("GPIO26", 0)
-  }
-  if(e.key == "s" || code == 40) {
-    socket.emit("GPIO26", 0)
-  }
-  if((e.key == "a" || code == 37)) {
-    socket.emit("GPIO26", 0)
-  }
-  if((e.key == "d" || code == 39)) {
-    socket.emit("GPIO26", 0)
-  }
-
-}
